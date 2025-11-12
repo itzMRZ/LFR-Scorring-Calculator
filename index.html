@@ -3,165 +3,897 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scoring Calculator</title>
-    
+    <title>LFR Score Calculator ⚡</title>
+
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
+            font-family: 'IBM Plex Mono', monospace;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+            color: #e0e0e0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Subtle grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
         }
 
         .calculator-container {
-            background-color: #ffffff;
+            background: rgba(26, 31, 46, 0.98);
+            border: 1px solid rgba(100, 200, 255, 0.3);
             border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
-            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            padding: 35px;
             width: 100%;
-            max-width: 500px;
+            max-width: 750px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(100, 200, 255, 0.2);
+            padding-bottom: 20px;
+            position: relative;
+        }
+
+        .settings-icon {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            color: #9ca3af;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-icon:hover {
+            color: #64c8ff;
+            transform: rotate(90deg);
+        }
+
+        .settings-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .custom-rules-badge {
+            display: none;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f59e0b;
+            color: #0f1419;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 3px 6px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .custom-rules-badge.active {
+            display: block;
         }
 
         h1 {
-            text-align: center;
-            color: #1a1a1a;
-            margin-top: 0;
+            font-family: 'JetBrains Mono', monospace;
+            color: #64c8ff;
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            color: #9ca3af;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+
+        /* Settings Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(26, 31, 46, 0.98);
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(100, 200, 255, 0.2);
+        }
+
+        .modal-header h2 {
+            font-family: 'JetBrains Mono', monospace;
+            color: #64c8ff;
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #ef4444;
+        }
+
+        .settings-group {
+            margin-bottom: 20px;
+        }
+
+        .settings-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #9ca3af;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .settings-group input[type="number"] {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(15, 20, 25, 0.6);
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            color: #e0e0e0;
+            transition: all 0.2s;
+        }
+
+        .settings-group input[type="number"]:focus {
+            outline: none;
+            border-color: #64c8ff;
+            background: rgba(15, 20, 25, 0.8);
+            box-shadow: 0 0 0 3px rgba(100, 200, 255, 0.1);
+        }
+
+        .settings-description {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(100, 200, 255, 0.2);
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-btn.primary {
+            background: linear-gradient(135deg, #64c8ff 0%, #4f9eff 100%);
+            border-color: #64c8ff;
+            color: #0f1419;
+        }
+
+        .modal-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(100, 200, 255, 0.3);
+        }
+
+        .modal-btn.secondary {
+            background: transparent;
+            border-color: rgba(100, 200, 255, 0.3);
+            color: #9ca3af;
+        }
+
+        .modal-btn.secondary:hover {
+            background: rgba(100, 200, 255, 0.05);
+            border-color: #64c8ff;
+            color: #64c8ff;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Preset Management */
+        .preset-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(100, 200, 255, 0.2);
+        }
+
+        .preset-section h3 {
+            color: #64c8ff;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preset-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .preset-select {
+            flex: 1;
+            padding: 10px 12px;
+            background: rgba(15, 20, 25, 0.6);
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-select:focus {
+            outline: none;
+            border-color: #64c8ff;
+            box-shadow: 0 0 0 3px rgba(100, 200, 255, 0.1);
+        }
+
+        .preset-btn {
+            padding: 10px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 6px;
+            background: transparent;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preset-btn:hover {
+            background: rgba(100, 200, 255, 0.05);
+            border-color: #64c8ff;
+            color: #64c8ff;
+        }
+
+        .preset-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .import-export-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(100, 200, 255, 0.03);
+            border: 1px solid rgba(100, 200, 255, 0.15);
+            border-radius: 6px;
+        }
+
+        .import-export-section h4 {
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .import-export-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .import-export-controls button {
+            flex: 1;
+            padding: 8px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 5px;
+            background: transparent;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .import-export-controls button:hover {
+            background: rgba(100, 200, 255, 0.05);
+            border-color: #64c8ff;
+            color: #64c8ff;
+        }
+
+        #import-file-input {
+            display: none;
+        }
+
+        .validation-error {
+            color: #ef4444;
+            font-size: 11px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .validation-error.active {
+            display: block;
+        }
+
+        input.error {
+            border-color: #ef4444 !important;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(26, 31, 46, 0.98);
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 8px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-color: #10b981;
+        }
+
+        .toast.error {
+            border-color: #ef4444;
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast-icon {
+            font-size: 20px;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: 13px;
+            color: #e0e0e0;
+        }
+
+        /* Save Preset Modal */
+        .save-preset-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10001;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .save-preset-modal.active {
+            display: flex;
+        }
+
+        .save-preset-content {
+            background: rgba(26, 31, 46, 0.98);
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .save-preset-content h3 {
+            color: #64c8ff;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 15px 0;
+        }
+
+        .save-preset-content input {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(15, 20, 25, 0.6);
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: #e0e0e0;
+            margin-bottom: 15px;
+        }
+
+        .save-preset-content input:focus {
+            outline: none;
+            border-color: #64c8ff;
+            box-shadow: 0 0 0 3px rgba(100, 200, 255, 0.1);
+        }
+
+        .save-preset-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Stopwatch Section */
+        .stopwatch-section {
+            background: rgba(100, 200, 255, 0.05);
+            border: 1px solid rgba(100, 200, 255, 0.25);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        .stopwatch-title {
+            color: #64c8ff;
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .stopwatch-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 42px;
+            color: #64c8ff;
+            margin-bottom: 18px;
+            letter-spacing: 4px;
+            font-weight: 600;
+        }
+
+        .stopwatch-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .stopwatch-btn {
+            padding: 10px 24px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            min-width: 100px;
+            letter-spacing: 0.5px;
+        }
+
+        .stopwatch-btn.start {
+            background: transparent;
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .stopwatch-btn.start:hover:not(:disabled) {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+        }
+
+        .stopwatch-btn.stop {
+            background: transparent;
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .stopwatch-btn.stop:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #ef4444;
+        }
+
+        .stopwatch-btn.reset {
+            background: transparent;
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .stopwatch-btn.reset:hover:not(:disabled) {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: #f59e0b;
+        }
+
+        .stopwatch-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Two column layout for inputs */
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .input-group {
             margin-bottom: 20px;
         }
 
+        .input-group.full-width {
+            grid-column: 1 / -1;
+        }
+
         .input-group label {
             display: block;
             font-weight: 600;
             margin-bottom: 8px;
-            color: #555;
+            color: #9ca3af;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .input-group input[type="number"] {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box; /* Important for padding to work correctly */
-            font-size: 16px;
+            padding: 11px 14px;
+            background: rgba(15, 20, 25, 0.6);
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            color: #e0e0e0;
+            transition: all 0.2s;
+            -moz-appearance: textfield;
         }
-        
-        /* New styles for side-by-side time inputs */
+
+        /* Remove scroll arrows from number inputs */
+        .input-group input[type="number"]::-webkit-outer-spin-button,
+        .input-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .input-group input[type="number"]:focus {
+            outline: none;
+            border-color: #64c8ff;
+            background: rgba(15, 20, 25, 0.8);
+            box-shadow: 0 0 0 3px rgba(100, 200, 255, 0.1);
+        }
+
         .time-input-group {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
+
         .time-input-group .input-wrapper {
-            flex: 1; /* Each input takes up equal space */
+            flex: 1;
         }
+
         .sub-label {
-            font-size: 14px;
-            font-weight: 500;
-            color: #777;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
             margin-bottom: 6px;
             display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        /* --- */
 
         .checkbox-group {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
+            padding: 13px 16px;
+            background: rgba(100, 200, 255, 0.03);
+            border-radius: 6px;
+            border: 1px solid rgba(100, 200, 255, 0.15);
+            transition: all 0.2s;
+        }
+
+        .checkbox-group:hover {
+            background: rgba(100, 200, 255, 0.06);
+            border-color: rgba(100, 200, 255, 0.3);
+        }
+
+        .time-preset-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .time-preset-btn {
+            flex: 1;
+            padding: 8px 12px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64c8ff;
+            background: rgba(100, 200, 255, 0.08);
+            border: 1px solid rgba(100, 200, 255, 0.25);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .time-preset-btn:hover {
+            background: rgba(100, 200, 255, 0.15);
+            border-color: #64c8ff;
+            transform: translateY(-1px);
+        }
+
+        .time-preset-btn:active {
+            transform: translateY(0);
         }
 
         .checkbox-group input[type="checkbox"] {
             margin-right: 12px;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #64c8ff;
         }
 
-        button {
+        .checkbox-group label {
+            color: #d1d5db;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        button#calculate-btn {
             width: 100%;
-            padding: 15px;
-            font-size: 18px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
             font-weight: 700;
-            color: #fff;
-            background-color: #007aff;
+            color: #0f1419;
+            background: linear-gradient(135deg, #64c8ff 0%, #4f9eff 100%);
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(100, 200, 255, 0.25);
         }
 
-        button:hover {
-            background-color: #0056b3;
+        button#calculate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(100, 200, 255, 0.35);
+        }
+
+        button#calculate-btn:active {
+            transform: translateY(0);
         }
 
         #result-container {
-            margin-top: 25px;
+            margin-top: 28px;
+            padding: 24px;
+            background: rgba(15, 20, 25, 0.6);
+            border: 1px solid rgba(100, 200, 255, 0.25);
+            border-radius: 8px;
             text-align: center;
         }
 
         #total-score {
+            font-family: 'JetBrains Mono', monospace;
             font-size: 32px;
             font-weight: 700;
-            color: #2c3e50;
+            color: #64c8ff;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
         }
 
         #score-breakdown {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-top: 10px;
-            line-height: 1.5;
+            font-size: 13px;
+            color: #d1d5db;
+            line-height: 1.8;
+            background: rgba(100, 200, 255, 0.03);
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid rgba(100, 200, 255, 0.15);
+        }
+
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            border-bottom: 1px solid rgba(100, 200, 255, 0.1);
+        }
+
+        .breakdown-row:last-child {
+            border-bottom: none;
+        }
+
+        .breakdown-label {
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .breakdown-value {
+            color: #64c8ff;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
         }
     </style>
 </head>
 <body>
 
     <div class="calculator-container">
-        <h1>Scoring Calculator</h1>
+        <div class="header">
+            <div class="settings-icon" id="settings-icon" title="Scoring Rules Settings">
+                <span class="custom-rules-badge" id="custom-rules-badge">Custom</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
+            <h1>LFR Score Calculator</h1>
+            <div class="subtitle">Line Following Robot Scoring System</div>
+        </div>
 
+        <!-- Stopwatch Section -->
+        <div class="stopwatch-section">
+            <div class="stopwatch-title">⏱ Timer</div>
+            <div class="stopwatch-display" id="stopwatch-display">00:00.000</div>
+            <div class="stopwatch-controls">
+                <button class="stopwatch-btn start" id="start-btn">Start</button>
+                <button class="stopwatch-btn stop" id="stop-btn" disabled>Stop</button>
+                <button class="stopwatch-btn reset" id="reset-btn">Reset</button>
+            </div>
+        </div>
+
+        <!-- Checkboxes -->
         <div class="checkbox-group">
             <input type="checkbox" id="start-point">
-            <label for="start-point">Leaving Start Point (S) [+20]</label>
+            <label for="start-point">Leaving Start Point (S) — +20 points</label>
         </div>
 
         <div class="checkbox-group">
             <input type="checkbox" id="end-point">
-            <label for="end-point">Stopping at End Point (E) [+20]</label>
+            <label for="end-point">Stopping at End Point (E) — +20 points</label>
         </div>
 
-        <div class="input-group">
-            <label for="checkpoints">Checkpoints Crossed (C) [+150 each]</label>
-            <input type="number" id="checkpoints" value="0" min="0">
-        </div>
+        <!-- Input Grid -->
+        <div class="input-grid">
+            <div class="input-group">
+                <label for="checkpoints">Checkpoints Crossed</label>
+                <input type="number" id="checkpoints" value="0" min="0" placeholder="0">
+            </div>
 
-        <div class="input-group">
-            <label for="restarts">Restarts (R) [-70 each]</label>
-            <input type="number" id="restarts" value="0" min="0">
-        </div>
+            <div class="input-group">
+                <label for="restarts">Number of Restarts</label>
+                <input type="number" id="restarts" value="0" min="0" placeholder="0">
+            </div>
 
-        <div class="input-group">
-            <label for="total-time">Total Time Allotted (in minutes)</label>
-            <input type="number" id="total-time" value="0" min="0" step="any">
-        </div>
+            <div class="input-group full-width">
+                <label for="total-time">Total Time Allotted (minutes)</label>
+                <input type="number" id="total-time" value="5" min="0" step="any" placeholder="5.0">
+                <span style="font-size: 11px; color: #6b7280; margin-top: 4px; display: block;">Default from settings. Change in ⚙️ Settings to update default.</span>
+            </div>
 
-        <div class="input-group">
-            <label>Elapsed Time</label>
-            <div class="time-input-group">
-                <div class="input-wrapper">
-                    <label for="elapsed-time-min" class="sub-label">Minutes</label>
-                    <input type="number" id="elapsed-time-min" value="0" min="0">
-                </div>
-                <div class="input-wrapper">
-                    <label for="elapsed-time-sec" class="sub-label">Seconds</label>
-                    <input type="number" id="elapsed-time-sec" value="0" min="0">
+            <div class="input-group full-width">
+                <label for="elapsed-time-display">Elapsed Time</label>
+                <div class="time-input-group">
+                    <div class="input-wrapper">
+                        <label for="elapsed-time-min" class="sub-label">Minutes</label>
+                        <input type="number" id="elapsed-time-min" value="0" min="0" placeholder="0">
+                    </div>
+                    <div class="input-wrapper">
+                        <label for="elapsed-time-sec" class="sub-label">Seconds</label>
+                        <input type="number" id="elapsed-time-sec" value="0" min="0" placeholder="0">
+                    </div>
                 </div>
             </div>
         </div>
+
         <button id="calculate-btn">Calculate Score</button>
 
         <div id="result-container">
@@ -170,25 +902,754 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Scoring Rules Settings</h2>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+
+            <!-- Preset Management Section -->
+            <div class="preset-section">
+                <h3>Presets</h3>
+                <div class="preset-controls">
+                    <select class="preset-select" id="preset-select">
+                        <option value="">Select a preset...</option>
+                    </select>
+                    <button class="preset-btn" id="save-preset-btn">Save</button>
+                    <button class="preset-btn danger" id="delete-preset-btn">Delete</button>
+                </div>
+            </div>
+
+            <!-- Import/Export Section -->
+            <div class="import-export-section">
+                <h4>Import / Export Configuration</h4>
+                <div class="import-export-controls">
+                    <button id="export-config-btn">📤 Export</button>
+                    <button id="import-config-btn">📥 Import</button>
+                    <button id="copy-config-btn">📋 Copy JSON</button>
+                </div>
+                <input type="file" id="import-file-input" accept=".json">
+            </div>
+
+            <!-- Scoring Rules -->
+            <div class="settings-grid">
+                <div class="settings-group">
+                    <label for="rule-start-point">Start Point Score</label>
+                    <input type="number" id="rule-start-point" value="20" step="1">
+                    <div class="settings-description">Points for leaving the start point</div>
+                    <div class="validation-error" id="error-start-point"></div>
+                </div>
+
+                <div class="settings-group">
+                    <label for="rule-end-point">End Point Score</label>
+                    <input type="number" id="rule-end-point" value="20" step="1">
+                    <div class="settings-description">Points for stopping at the end point</div>
+                    <div class="validation-error" id="error-end-point"></div>
+                </div>
+
+                <div class="settings-group">
+                    <label for="rule-checkpoint">Checkpoint Score</label>
+                    <input type="number" id="rule-checkpoint" value="150" step="1">
+                    <div class="settings-description">Points per checkpoint crossed</div>
+                    <div class="validation-error" id="error-checkpoint"></div>
+                </div>
+
+                <div class="settings-group">
+                    <label for="rule-restart">Restart Penalty</label>
+                    <input type="number" id="rule-restart" value="-70" step="1">
+                    <div class="settings-description">Points deducted per restart (use negative)</div>
+                    <div class="validation-error" id="error-restart"></div>
+                </div>
+
+                <div class="settings-group">
+                    <label for="rule-bonus">Perfect Bonus</label>
+                    <input type="number" id="rule-bonus" value="150" step="1">
+                    <div class="settings-description">Bonus for completing with no restarts</div>
+                    <div class="validation-error" id="error-bonus"></div>
+                </div>
+
+                <div class="settings-group">
+                    <label for="rule-time-multiplier">Time Multiplier</label>
+                    <input type="number" id="rule-time-multiplier" value="1" step="0.1" min="0">
+                    <div class="settings-description">Multiplier for remaining time in seconds</div>
+                    <div class="validation-error" id="error-time-multiplier"></div>
+                </div>
+
+                <div class="settings-group">
+                    <label for="rule-total-time">Total Time Allotted (minutes)</label>
+                    <div class="time-preset-buttons">
+                        <button type="button" class="time-preset-btn" data-time="3">3 min</button>
+                        <button type="button" class="time-preset-btn" data-time="5">5 min</button>
+                        <button type="button" class="time-preset-btn" data-time="8">8 min</button>
+                        <button type="button" class="time-preset-btn" data-time="10">10 min</button>
+                    </div>
+                    <input type="number" id="rule-total-time" value="5" step="0.1" min="0">
+                    <div class="settings-description">Maximum time allowed for the run</div>
+                    <div class="validation-error" id="error-total-time"></div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn secondary" id="reset-defaults">Reset to Default</button>
+                <button class="modal-btn primary" id="save-settings">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Preset Modal -->
+    <div class="save-preset-modal" id="save-preset-modal">
+        <div class="save-preset-content">
+            <h3>Save Preset</h3>
+            <input type="text" id="preset-name-input" placeholder="Enter preset name..." maxlength="50">
+            <div class="save-preset-actions">
+                <button class="modal-btn secondary" id="cancel-save-preset">Cancel</button>
+                <button class="modal-btn primary" id="confirm-save-preset">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
     <script>
-        // Wait for the button to be clicked
+        /* ========================================================================
+         * LFR SCORE CALCULATOR - ADVANCED CONFIGURATION SYSTEM
+         * ========================================================================
+         *
+         * FEATURES:
+         * - Preset Management: Built-in and custom user presets
+         * - Import/Export: JSON-based configuration sharing
+         * - Validation: Real-time input validation with error display
+         * - Persistence: LocalStorage for settings and presets
+         * - Toast Notifications: User-friendly feedback system
+         *
+         * ARCHITECTURE:
+         * - Separation of Concerns: Distinct modules for scoring, UI, and data
+         * - State Management: Centralized scoring rules and preset storage
+         * - Event-Driven: Modular event handlers for all interactions
+         *
+         * INDUSTRY PRACTICES:
+         * - JSON Schema for configuration
+         * - Validation before persistence
+         * - Import/Export with metadata
+         * - User preset isolation from built-in presets
+         * - Clipboard API integration
+         * - Error handling and user feedback
+         *
+         * ====================================================================== */
+
+        // ===== SCORING RULES (DEFAULT VALUES) =====
+        const DEFAULT_RULES = {
+            startPoint: 20,
+            endPoint: 20,
+            checkpoint: 150,
+            restart: -70,
+            bonus: 150,
+            timeMultiplier: 1,
+            totalTime: 5
+        };
+
+        // Built-in Competition Presets
+        const BUILT_IN_PRESETS = {
+            'Default': { ...DEFAULT_RULES },
+            'RoboCup Junior': {
+                startPoint: 0,
+                endPoint: 50,
+                checkpoint: 100,
+                restart: -50,
+                bonus: 200,
+                timeMultiplier: 2,
+                totalTime: 8
+            },
+            'WRO Regular': {
+                startPoint: 10,
+                endPoint: 30,
+                checkpoint: 120,
+                restart: -60,
+                bonus: 100,
+                timeMultiplier: 1.5,
+                totalTime: 5
+            },
+            'FIRST LEGO League': {
+                startPoint: 15,
+                endPoint: 25,
+                checkpoint: 80,
+                restart: -40,
+                bonus: 150,
+                timeMultiplier: 1,
+                totalTime: 3
+            }
+        };
+
+        let scoringRules = { ...DEFAULT_RULES };
+        let userPresets = {};
+
+        // ===== UTILITY FUNCTIONS =====
+
+        // Toast notification system
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icon = type === 'success' ? '✓' : '✗';
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <div class="toast-icon">${icon}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => container.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        // Validation
+        function validateRules(rules) {
+            const errors = {};
+
+            if (rules.timeMultiplier < 0) {
+                errors.timeMultiplier = 'Time multiplier cannot be negative';
+            }
+
+            if (rules.totalTime !== undefined && rules.totalTime < 0) {
+                errors.totalTime = 'Total time cannot be negative';
+            }
+
+            // Check for unreasonable values
+            const maxValue = 10000;
+            const minValue = -10000;
+
+            Object.keys(rules).forEach(key => {
+                if (key !== 'timeMultiplier' && key !== 'totalTime' && (rules[key] > maxValue || rules[key] < minValue)) {
+                    errors[key] = `Value must be between ${minValue} and ${maxValue}`;
+                }
+            });
+
+            return errors;
+        }
+
+        function displayValidationErrors(errors) {
+            // Clear all errors first
+            document.querySelectorAll('.validation-error').forEach(el => {
+                el.classList.remove('active');
+                el.textContent = '';
+            });
+            document.querySelectorAll('.settings-group input').forEach(el => {
+                el.classList.remove('error');
+            });
+
+            // Display new errors
+            Object.keys(errors).forEach(key => {
+                const errorEl = document.getElementById(`error-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
+                const inputEl = document.getElementById(`rule-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
+                if (errorEl && inputEl) {
+                    errorEl.textContent = errors[key];
+                    errorEl.classList.add('active');
+                    inputEl.classList.add('error');
+                }
+            });
+        }
+
+        // Load saved settings from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('lfrScoringRules');
+            const savedPresets = localStorage.getItem('lfrUserPresets');
+
+            if (saved) {
+                try {
+                    scoringRules = JSON.parse(saved);
+                    updateSettingsInputs();
+                    // Pre-fill main interface total time input with settings value
+                    document.getElementById('total-time').value = scoringRules.totalTime || 5;
+                } catch (e) {
+                    console.error('Error loading settings:', e);
+                    scoringRules = { ...DEFAULT_RULES };
+                }
+            } else {
+                // On first load, set the default value
+                document.getElementById('total-time').value = scoringRules.totalTime || 5;
+            }
+
+            if (savedPresets) {
+                try {
+                    userPresets = JSON.parse(savedPresets);
+                    updatePresetDropdown();
+                } catch (e) {
+                    console.error('Error loading presets:', e);
+                    userPresets = {};
+                }
+            }
+        }
+
+        // Save settings to localStorage
+        function saveSettings() {
+            localStorage.setItem('lfrScoringRules', JSON.stringify(scoringRules));
+        }
+
+        // Save user presets
+        function saveUserPresets() {
+            localStorage.setItem('lfrUserPresets', JSON.stringify(userPresets));
+        }
+
+        // Update preset dropdown
+        function updatePresetDropdown() {
+            const select = document.getElementById('preset-select');
+            select.innerHTML = '<option value="">Select a preset...</option>';
+
+            // Add built-in presets
+            const builtInGroup = document.createElement('optgroup');
+            builtInGroup.label = 'Built-in Presets';
+            for (const [name, rules] of Object.entries(BUILT_IN_PRESETS)) {
+                const option = document.createElement('option');
+                option.value = `builtin:${name}`;
+                option.textContent = name;
+                builtInGroup.appendChild(option);
+            }
+            select.appendChild(builtInGroup);
+
+            // Add user presets
+            if (Object.keys(userPresets).length > 0) {
+                const userGroup = document.createElement('optgroup');
+                userGroup.label = 'My Presets';
+                for (const [name, rules] of Object.entries(userPresets)) {
+                    const option = document.createElement('option');
+                    option.value = `user:${name}`;
+                    option.textContent = name;
+                    userGroup.appendChild(option);
+                }
+                select.appendChild(userGroup);
+            }
+        }
+
+        // Load preset
+        function loadPreset(presetKey) {
+            const [type, name] = presetKey.split(':');
+            let rules;
+
+            if (type === 'builtin') {
+                rules = BUILT_IN_PRESETS[name];
+            } else if (type === 'user') {
+                rules = userPresets[name];
+            }
+
+            if (rules) {
+                scoringRules = { ...rules };
+                updateSettingsInputs();
+                displayValidationErrors({});
+                // Update main interface total time input when preset is loaded
+                document.getElementById('total-time').value = scoringRules.totalTime || 5;
+                showToast(`Loaded preset: ${name}`, 'success');
+            }
+        }
+
+        // Export configuration
+        function exportConfiguration() {
+            const config = {
+                name: 'Custom LFR Scoring Configuration',
+                version: '1.0',
+                timestamp: new Date().toISOString(),
+                rules: scoringRules
+            };
+
+            const dataStr = JSON.stringify(config, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `lfr-scoring-config-${Date.now()}.json`;
+            link.click();
+
+            URL.revokeObjectURL(url);
+            showToast('Configuration exported successfully', 'success');
+        }
+
+        // Import configuration
+        function importConfiguration(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const config = JSON.parse(e.target.result);
+
+                    if (!config.rules) {
+                        throw new Error('Invalid configuration file');
+                    }
+
+                    // Validate imported rules
+                    const errors = validateRules(config.rules);
+                    if (Object.keys(errors).length > 0) {
+                        showToast('Invalid configuration values', 'error');
+                        return;
+                    }
+
+                    scoringRules = { ...config.rules };
+                    updateSettingsInputs();
+                    saveSettings();
+                    updateCheckboxLabels();
+                    updateCustomRulesBadge();
+                    showToast('Configuration imported successfully', 'success');
+
+                } catch (error) {
+                    showToast('Failed to import configuration', 'error');
+                    console.error('Import error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Copy configuration to clipboard
+        function copyConfigToClipboard() {
+            const config = {
+                name: 'Custom LFR Scoring Configuration',
+                version: '1.0',
+                rules: scoringRules
+            };
+
+            const jsonStr = JSON.stringify(config, null, 2);
+
+            navigator.clipboard.writeText(jsonStr).then(() => {
+                showToast('Configuration copied to clipboard', 'success');
+            }).catch(() => {
+                showToast('Failed to copy to clipboard', 'error');
+            });
+        }
+
+        // Update settings modal inputs with current values
+        function updateSettingsInputs() {
+            document.getElementById('rule-start-point').value = scoringRules.startPoint;
+            document.getElementById('rule-end-point').value = scoringRules.endPoint;
+            document.getElementById('rule-checkpoint').value = scoringRules.checkpoint;
+            document.getElementById('rule-restart').value = scoringRules.restart;
+            document.getElementById('rule-bonus').value = scoringRules.bonus;
+            document.getElementById('rule-time-multiplier').value = scoringRules.timeMultiplier;
+        }
+
+        // Update checkbox labels with current point values
+        function updateCheckboxLabels() {
+            document.querySelector('label[for="start-point"]').textContent =
+                `Leaving Start Point (S) — ${scoringRules.startPoint >= 0 ? '+' : ''}${scoringRules.startPoint} points`;
+            document.querySelector('label[for="end-point"]').textContent =
+                `Stopping at End Point (E) — ${scoringRules.endPoint >= 0 ? '+' : ''}${scoringRules.endPoint} points`;
+        }
+
+        // Check if using custom rules and update badge
+        function updateCustomRulesBadge() {
+            const isCustom = JSON.stringify(scoringRules) !== JSON.stringify(DEFAULT_RULES);
+            const badge = document.getElementById('custom-rules-badge');
+            if (isCustom) {
+                badge.classList.add('active');
+            } else {
+                badge.classList.remove('active');
+            }
+        }
+
+        // ===== SETTINGS MODAL FUNCTIONALITY =====
+        const settingsModal = document.getElementById('settings-modal');
+        const settingsIcon = document.getElementById('settings-icon');
+        const closeModalBtn = document.getElementById('close-modal');
+        const saveSettingsBtn = document.getElementById('save-settings');
+        const resetDefaultsBtn = document.getElementById('reset-defaults');
+
+        // Preset management elements
+        const presetSelect = document.getElementById('preset-select');
+        const savePresetBtn = document.getElementById('save-preset-btn');
+        const deletePresetBtn = document.getElementById('delete-preset-btn');
+        const savePresetModal = document.getElementById('save-preset-modal');
+        const presetNameInput = document.getElementById('preset-name-input');
+        const confirmSavePreset = document.getElementById('confirm-save-preset');
+        const cancelSavePreset = document.getElementById('cancel-save-preset');
+
+        // Import/Export elements
+        const exportConfigBtn = document.getElementById('export-config-btn');
+        const importConfigBtn = document.getElementById('import-config-btn');
+        const copyConfigBtn = document.getElementById('copy-config-btn');
+        const importFileInput = document.getElementById('import-file-input');
+
+        // Open modal
+        settingsIcon.addEventListener('click', function() {
+            updateSettingsInputs();
+            updatePresetDropdown();
+            settingsModal.classList.add('active');
+        });
+
+        // Close modal
+        closeModalBtn.addEventListener('click', function() {
+            settingsModal.classList.remove('active');
+        });
+
+        // Close modal when clicking outside
+        settingsModal.addEventListener('click', function(e) {
+            if (e.target === settingsModal) {
+                settingsModal.classList.remove('active');
+            }
+        });
+
+        // Close modal with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (settingsModal.classList.contains('active')) {
+                    settingsModal.classList.remove('active');
+                }
+                if (savePresetModal.classList.contains('active')) {
+                    savePresetModal.classList.remove('active');
+                }
+            }
+        });
+
+        // Preset selection
+        presetSelect.addEventListener('change', function() {
+            const value = this.value;
+            if (value) {
+                loadPreset(value);
+            }
+        });
+
+        // Save preset button - open modal
+        savePresetBtn.addEventListener('click', function() {
+            presetNameInput.value = '';
+            savePresetModal.classList.add('active');
+            presetNameInput.focus();
+        });
+
+        // Confirm save preset
+        confirmSavePreset.addEventListener('click', function() {
+            const name = presetNameInput.value.trim();
+            if (!name) {
+                showToast('Please enter a preset name', 'error');
+                return;
+            }
+
+            if (BUILT_IN_PRESETS[name]) {
+                showToast('Cannot overwrite built-in preset', 'error');
+                return;
+            }
+
+            // Get current values from inputs
+            const newPreset = {
+                startPoint: Number.parseFloat(document.getElementById('rule-start-point').value) || 0,
+                endPoint: Number.parseFloat(document.getElementById('rule-end-point').value) || 0,
+                checkpoint: Number.parseFloat(document.getElementById('rule-checkpoint').value) || 0,
+                restart: Number.parseFloat(document.getElementById('rule-restart').value) || 0,
+                bonus: Number.parseFloat(document.getElementById('rule-bonus').value) || 0,
+                timeMultiplier: Number.parseFloat(document.getElementById('rule-time-multiplier').value) || 1,
+                totalTime: Number.parseFloat(document.getElementById('rule-total-time').value) || 5
+            };
+
+            // Validate before saving
+            const errors = validateRules(newPreset);
+            if (Object.keys(errors).length > 0) {
+                showToast('Please fix validation errors first', 'error');
+                return;
+            }
+
+            userPresets[name] = newPreset;
+            saveUserPresets();
+            updatePresetDropdown();
+            savePresetModal.classList.remove('active');
+            showToast(`Preset "${name}" saved successfully`, 'success');
+        });
+
+        // Cancel save preset
+        cancelSavePreset.addEventListener('click', function() {
+            savePresetModal.classList.remove('active');
+        });
+
+        // Delete preset
+        deletePresetBtn.addEventListener('click', function() {
+            const value = presetSelect.value;
+            if (!value) {
+                showToast('Please select a preset to delete', 'error');
+                return;
+            }
+
+            const [type, name] = value.split(':');
+
+            if (type === 'builtin') {
+                showToast('Cannot delete built-in presets', 'error');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete the preset "${name}"?`)) {
+                delete userPresets[name];
+                saveUserPresets();
+                updatePresetDropdown();
+                presetSelect.value = '';
+                showToast(`Preset "${name}" deleted`, 'success');
+            }
+        });
+
+        // Export configuration
+        exportConfigBtn.addEventListener('click', function() {
+            exportConfiguration();
+        });
+
+        // Import configuration
+        importConfigBtn.addEventListener('click', function() {
+            importFileInput.click();
+        });
+
+        importFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                importConfiguration(file);
+                e.target.value = ''; // Reset input
+            }
+        });
+
+        // Copy configuration
+        copyConfigBtn.addEventListener('click', function() {
+            copyConfigToClipboard();
+        });
+
+        // Save settings
+        saveSettingsBtn.addEventListener('click', function() {
+            scoringRules.startPoint = Number.parseFloat(document.getElementById('rule-start-point').value) || 0;
+            scoringRules.endPoint = Number.parseFloat(document.getElementById('rule-end-point').value) || 0;
+            scoringRules.checkpoint = Number.parseFloat(document.getElementById('rule-checkpoint').value) || 0;
+            scoringRules.restart = Number.parseFloat(document.getElementById('rule-restart').value) || 0;
+            scoringRules.bonus = Number.parseFloat(document.getElementById('rule-bonus').value) || 0;
+            scoringRules.timeMultiplier = Number.parseFloat(document.getElementById('rule-time-multiplier').value) || 1;
+            scoringRules.totalTime = Number.parseFloat(document.getElementById('rule-total-time').value) || 0;
+
+            // Validate before saving
+            const errors = validateRules(scoringRules);
+            if (Object.keys(errors).length > 0) {
+                displayValidationErrors(errors);
+                showToast('Please fix validation errors', 'error');
+                return;
+            }
+
+            displayValidationErrors({});
+            saveSettings();
+            updateCheckboxLabels();
+            updateCustomRulesBadge();
+            // Update main interface total time input with settings value
+            document.getElementById('total-time').value = scoringRules.totalTime;
+            settingsModal.classList.remove('active');
+            showToast('Settings saved successfully', 'success');
+        });
+
+        // Reset to defaults
+        resetDefaultsBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to reset all scoring rules to default values?')) {
+                scoringRules = { ...DEFAULT_RULES };
+                updateSettingsInputs();
+                saveSettings();
+                updateCheckboxLabels();
+                updateCustomRulesBadge();
+                displayValidationErrors({});
+                showToast('Reset to default settings', 'success');
+            }
+        });
+
+        // Load settings on page load
+        loadSettings();
+        updateCheckboxLabels();
+        updateCustomRulesBadge();
+
+        // ===== STOPWATCH FUNCTIONALITY =====
+        let stopwatchInterval = null;
+        let stopwatchTime = 0;
+        let isRunning = false;
+
+        const stopwatchDisplay = document.getElementById('stopwatch-display');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const resetBtn = document.getElementById('reset-btn');
+
+        function formatTime(milliseconds) {
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const ms = milliseconds % 1000;
+
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
+        }
+
+        function updateStopwatchDisplay() {
+            stopwatchDisplay.textContent = formatTime(stopwatchTime);
+        }
+
+        startBtn.addEventListener('click', function() {
+            if (!isRunning) {
+                isRunning = true;
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+
+                const startTime = Date.now() - stopwatchTime;
+
+                stopwatchInterval = setInterval(function() {
+                    stopwatchTime = Date.now() - startTime;
+                    updateStopwatchDisplay();
+
+                    // Auto-update elapsed time fields
+                    const totalSeconds = Math.floor(stopwatchTime / 1000);
+                    const minutes = Math.floor(totalSeconds / 60);
+                    const seconds = totalSeconds % 60;
+
+                    document.getElementById('elapsed-time-min').value = minutes;
+                    document.getElementById('elapsed-time-sec').value = seconds;
+                }, 10);
+            }
+        });
+
+        stopBtn.addEventListener('click', function() {
+            if (isRunning) {
+                isRunning = false;
+                clearInterval(stopwatchInterval);
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        });
+
+        resetBtn.addEventListener('click', function() {
+            isRunning = false;
+            clearInterval(stopwatchInterval);
+            stopwatchTime = 0;
+            updateStopwatchDisplay();
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+
+            // Reset elapsed time fields
+            document.getElementById('elapsed-time-min').value = 0;
+            document.getElementById('elapsed-time-sec').value = 0;
+        });
+
+        // ===== TIME PRESET BUTTONS =====
+        document.querySelectorAll('.time-preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const time = btn.dataset.time;
+                document.getElementById('rule-total-time').value = time;
+            });
+        });
+
+        // ===== SCORING CALCULATION =====
         document.getElementById('calculate-btn').addEventListener('click', function() {
-            
+
             // --- 1. Get Values from Inputs ---
-            
+
             // Get boolean (true/false) from checkboxes
             const leftStart = document.getElementById('start-point').checked;
             const reachedEnd = document.getElementById('end-point').checked;
 
             // Get numbers from count fields
-            const checkpoints = parseInt(document.getElementById('checkpoints').value) || 0;
-            const restarts = parseInt(document.getElementById('restarts').value) || 0;
-            
+            const checkpoints = Number.parseInt(document.getElementById('checkpoints').value) || 0;
+            const restarts = Number.parseInt(document.getElementById('restarts').value) || 0;
+
             // --- MODIFIED TIME LOGIC ---
-            // Get time values
-            const totalTimeMinutes = parseFloat(document.getElementById('total-time').value) || 0;
-            const elapsedMinutes = parseInt(document.getElementById('elapsed-time-min').value) || 0;
-            const elapsedSeconds = parseInt(document.getElementById('elapsed-time-sec').value) || 0;
+            // Get time values - use manual input if provided, otherwise fall back to settings
+            const totalTimeMinutes = Number.parseFloat(document.getElementById('total-time').value) || scoringRules.totalTime || 0;
+            const elapsedMinutes = Number.parseInt(document.getElementById('elapsed-time-min').value) || 0;
+            const elapsedSeconds = Number.parseInt(document.getElementById('elapsed-time-sec').value) || 0;
 
             // Convert all time to a common unit (seconds) for calculation
             const totalTimeInSeconds = totalTimeMinutes * 60;
@@ -196,42 +1657,60 @@
             // --- END OF MODIFIED TIME LOGIC ---
 
 
-            // --- 2. Calculate Each Score Component ---
+            // --- 2. Calculate Each Score Component (Using Custom Rules) ---
 
-            // S: +20 if 'leftStart' is true, 0 otherwise
-            const scoreS = leftStart ? 20 : 0;
+            // S: Start point score
+            const scoreS = leftStart ? scoringRules.startPoint : 0;
 
-            // E: +20 if 'reachedEnd' is true, 0 otherwise
-            const scoreE = reachedEnd ? 20 : 0;
+            // E: End point score
+            const scoreE = reachedEnd ? scoringRules.endPoint : 0;
 
-            // C: +150 per checkpoint
-            const scoreC = checkpoints * 150;
+            // C: Checkpoint score per checkpoint
+            const scoreC = checkpoints * scoringRules.checkpoint;
 
-            // R: -70 per restart
-            const scoreR = restarts * -70;
+            // R: Restart penalty per restart
+            const scoreR = restarts * scoringRules.restart;
 
-            // B: +150 if restarts is 0 AND the end was reached
-            const scoreB = (restarts === 0 && reachedEnd) ? 150 : 0;
+            // B: Perfect bonus if restarts is 0 AND the end was reached
+            const scoreB = (restarts === 0 && reachedEnd) ? scoringRules.bonus : 0;
 
-            // T: (Total Time - Elapsed Time) * 1, now calculated in seconds
-            const scoreT = (totalTimeInSeconds - elapsedTotalSeconds) * 1;
+            // T: (Total Time - Elapsed Time) * time multiplier
+            const scoreT = (totalTimeInSeconds - elapsedTotalSeconds) * scoringRules.timeMultiplier;
 
             // --- 3. Calculate Total Score ---
             const finalScore = scoreS + scoreE + scoreC + scoreR + scoreB + scoreT;
 
             // --- 4. Display the Result ---
-            
-            // Show the final score (using .toFixed(0) to remove decimals)
+
+            // Show the final score
             document.getElementById('total-score').textContent = `Total Score: ${finalScore.toFixed(0)}`;
 
-            // Show a helpful breakdown, showing the time calculation in seconds
+            // Show a detailed breakdown in a better format
             const breakdown = `
-                Start (S): ${scoreS}<br>
-                End (E): ${scoreE}<br>
-                Checkpoints (C): ${scoreC} (${checkpoints} × 150)<br>
-                Restarts (R): ${scoreR} (${restarts} × -70)<br>
-                Bonus (B): ${scoreB}<br>
-                Time (T): ${scoreT.toFixed(0)} (${totalTimeInSeconds.toFixed(0)}s - ${elapsedTotalSeconds.toFixed(0)}s)
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Start Point (S):</span>
+                    <span class="breakdown-value" style="color: ${scoreS < 0 ? '#ef4444' : '#10b981'}">${scoreS > 0 ? '+' : ''}${scoreS}</span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">End Point (E):</span>
+                    <span class="breakdown-value" style="color: ${scoreE < 0 ? '#ef4444' : '#10b981'}">${scoreE > 0 ? '+' : ''}${scoreE}</span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Checkpoints (C):</span>
+                    <span class="breakdown-value" style="color: ${scoreC < 0 ? '#ef4444' : '#10b981'}">${scoreC > 0 ? '+' : ''}${scoreC} <span style="opacity: 0.6">(${checkpoints} × ${scoringRules.checkpoint})</span></span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Restarts (R):</span>
+                    <span class="breakdown-value" style="color: ${scoreR < 0 ? '#ef4444' : '#10b981'}">${scoreR > 0 ? '+' : ''}${scoreR} <span style="opacity: 0.6">(${restarts} × ${scoringRules.restart})</span></span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Perfect Bonus (B):</span>
+                    <span class="breakdown-value" style="color: ${scoreB < 0 ? '#ef4444' : '#10b981'}">${scoreB > 0 ? '+' : ''}${scoreB}</span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Time Bonus (T):</span>
+                    <span class="breakdown-value" style="color: ${scoreT < 0 ? '#ef4444' : '#10b981'}">${scoreT > 0 ? '+' : ''}${scoreT.toFixed(1)}s <span style="opacity: 0.6">(${totalTimeInSeconds.toFixed(0)}s - ${elapsedTotalSeconds.toFixed(0)}s) × ${scoringRules.timeMultiplier}</span></span>
+                </div>
             `;
             document.getElementById('score-breakdown').innerHTML = breakdown;
         });
