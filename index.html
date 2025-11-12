@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoring Calculator</title>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .calculator-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a1a1a;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .input-group input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box; /* Important for padding to work correctly */
+            font-size: 16px;
+        }
+        
+        /* New styles for side-by-side time inputs */
+        .time-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .time-input-group .input-wrapper {
+            flex: 1; /* Each input takes up equal space */
+        }
+        .sub-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #777;
+            margin-bottom: 6px;
+            display: block;
+        }
+        /* --- */
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            background-color: #007aff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result-container {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        #total-score {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        #score-breakdown {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <h1>Scoring Calculator</h1>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="start-point">
+            <label for="start-point">Leaving Start Point (S) [+20]</label>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="end-point">
+            <label for="end-point">Stopping at End Point (E) [+20]</label>
+        </div>
+
+        <div class="input-group">
+            <label for="checkpoints">Checkpoints Crossed (C) [+150 each]</label>
+            <input type="number" id="checkpoints" value="0" min="0">
+        </div>
+
+        <div class="input-group">
+            <label for="restarts">Restarts (R) [-70 each]</label>
+            <input type="number" id="restarts" value="0" min="0">
+        </div>
+
+        <div class="input-group">
+            <label for="total-time">Total Time Allotted (in minutes)</label>
+            <input type="number" id="total-time" value="0" min="0" step="any">
+        </div>
+
+        <div class="input-group">
+            <label>Elapsed Time</label>
+            <div class="time-input-group">
+                <div class="input-wrapper">
+                    <label for="elapsed-time-min" class="sub-label">Minutes</label>
+                    <input type="number" id="elapsed-time-min" value="0" min="0">
+                </div>
+                <div class="input-wrapper">
+                    <label for="elapsed-time-sec" class="sub-label">Seconds</label>
+                    <input type="number" id="elapsed-time-sec" value="0" min="0">
+                </div>
+            </div>
+        </div>
+        <button id="calculate-btn">Calculate Score</button>
+
+        <div id="result-container">
+            <div id="total-score">Total Score: 0</div>
+            <div id="score-breakdown"></div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for the button to be clicked
+        document.getElementById('calculate-btn').addEventListener('click', function() {
+            
+            // --- 1. Get Values from Inputs ---
+            
+            // Get boolean (true/false) from checkboxes
+            const leftStart = document.getElementById('start-point').checked;
+            const reachedEnd = document.getElementById('end-point').checked;
+
+            // Get numbers from count fields
+            const checkpoints = parseInt(document.getElementById('checkpoints').value) || 0;
+            const restarts = parseInt(document.getElementById('restarts').value) || 0;
+            
+            // --- MODIFIED TIME LOGIC ---
+            // Get time values
+            const totalTimeMinutes = parseFloat(document.getElementById('total-time').value) || 0;
+            const elapsedMinutes = parseInt(document.getElementById('elapsed-time-min').value) || 0;
+            const elapsedSeconds = parseInt(document.getElementById('elapsed-time-sec').value) || 0;
+
+            // Convert all time to a common unit (seconds) for calculation
+            const totalTimeInSeconds = totalTimeMinutes * 60;
+            const elapsedTotalSeconds = (elapsedMinutes * 60) + elapsedSeconds;
+            // --- END OF MODIFIED TIME LOGIC ---
+
+
+            // --- 2. Calculate Each Score Component ---
+
+            // S: +20 if 'leftStart' is true, 0 otherwise
+            const scoreS = leftStart ? 20 : 0;
+
+            // E: +20 if 'reachedEnd' is true, 0 otherwise
+            const scoreE = reachedEnd ? 20 : 0;
+
+            // C: +150 per checkpoint
+            const scoreC = checkpoints * 150;
+
+            // R: -70 per restart
+            const scoreR = restarts * -70;
+
+            // B: +150 if restarts is 0 AND the end was reached
+            const scoreB = (restarts === 0 && reachedEnd) ? 150 : 0;
+
+            // T: (Total Time - Elapsed Time) * 1, now calculated in seconds
+            const scoreT = (totalTimeInSeconds - elapsedTotalSeconds) * 1;
+
+            // --- 3. Calculate Total Score ---
+            const finalScore = scoreS + scoreE + scoreC + scoreR + scoreB + scoreT;
+
+            // --- 4. Display the Result ---
+            
+            // Show the final score (using .toFixed(0) to remove decimals)
+            document.getElementById('total-score').textContent = `Total Score: ${finalScore.toFixed(0)}`;
+
+            // Show a helpful breakdown, showing the time calculation in seconds
+            const breakdown = `
+                Start (S): ${scoreS}<br>
+                End (E): ${scoreE}<br>
+                Checkpoints (C): ${scoreC} (${checkpoints} × 150)<br>
+                Restarts (R): ${scoreR} (${restarts} × -70)<br>
+                Bonus (B): ${scoreB}<br>
+                Time (T): ${scoreT.toFixed(0)} (${totalTimeInSeconds.toFixed(0)}s - ${elapsedTotalSeconds.toFixed(0)}s)
+            `;
+            document.getElementById('score-breakdown').innerHTML = breakdown;
+        });
+    </script>
+
+</body>
+</html>
