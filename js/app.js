@@ -607,20 +607,90 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    resetBtn.addEventListener('click', function() {
-        isRunning = false;
-        clearInterval(stopwatchInterval);
-        stopwatchTime = 0;
-        updateStopwatchDisplay();
+    // Reset button with hold-to-confirm
+    let resetHoldTimer = null;
+    let isResetting = false;
 
-        playPauseBtn.classList.remove('paused');
-        playIcon.classList.remove('hidden');
-        pauseIcon.classList.add('hidden');
-        btnText.textContent = 'Start';
+    resetBtn.addEventListener('mousedown', function() {
+        isResetting = true;
+        resetBtn.textContent = 'Hold...';
 
-        // Reset elapsed time fields
-        document.getElementById('elapsed-time-min').value = 0;
-        document.getElementById('elapsed-time-sec').value = 0;
+        resetHoldTimer = setTimeout(function() {
+            if (isResetting) {
+                // Perform reset
+                isRunning = false;
+                clearInterval(stopwatchInterval);
+                stopwatchTime = 0;
+                updateStopwatchDisplay();
+
+                playPauseBtn.classList.remove('paused');
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                btnText.textContent = 'Start';
+
+                // Reset elapsed time fields
+                document.getElementById('elapsed-time-min').value = 0;
+                document.getElementById('elapsed-time-sec').value = 0;
+
+                resetBtn.textContent = 'Reset';
+                showToast('Stopwatch reset', 'success');
+            }
+        }, 800); // Hold for 800ms
+    });
+
+    resetBtn.addEventListener('mouseup', function() {
+        isResetting = false;
+        clearTimeout(resetHoldTimer);
+        resetBtn.textContent = 'Reset';
+    });
+
+    resetBtn.addEventListener('mouseleave', function() {
+        isResetting = false;
+        clearTimeout(resetHoldTimer);
+        resetBtn.textContent = 'Reset';
+    });
+
+    // Touch events for mobile
+    resetBtn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        isResetting = true;
+        resetBtn.textContent = 'Hold...';
+
+        resetHoldTimer = setTimeout(function() {
+            if (isResetting) {
+                // Perform reset
+                isRunning = false;
+                clearInterval(stopwatchInterval);
+                stopwatchTime = 0;
+                updateStopwatchDisplay();
+
+                playPauseBtn.classList.remove('paused');
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                btnText.textContent = 'Start';
+
+                // Reset elapsed time fields
+                document.getElementById('elapsed-time-min').value = 0;
+                document.getElementById('elapsed-time-sec').value = 0;
+
+                resetBtn.textContent = 'Reset';
+                showToast('Stopwatch reset', 'success');
+            }
+        }, 800);
+    });
+
+    resetBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        isResetting = false;
+        clearTimeout(resetHoldTimer);
+        resetBtn.textContent = 'Reset';
+    });
+
+    resetBtn.addEventListener('touchcancel', function(e) {
+        e.preventDefault();
+        isResetting = false;
+        clearTimeout(resetHoldTimer);
+        resetBtn.textContent = 'Reset';
     });
 
     // ===== TIME PRESET BUTTONS =====
