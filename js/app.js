@@ -614,90 +614,72 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Reset button with hold-to-confirm
-    let resetHoldTimer = null;
-    let isResetting = false;
+    // Reset button with confirm/cancel toggle
+    let isConfirming = false;
 
-    resetBtn.addEventListener('mousedown', function() {
-        isResetting = true;
-        resetBtn.textContent = 'Hold...';
+    function showResetConfirmation() {
+        isConfirming = true;
+        resetBtn.classList.add('confirming');
+        const confirmDiv = resetBtn.querySelector('.reset-confirm');
+        if (confirmDiv) {
+            confirmDiv.classList.remove('hidden');
+        }
+    }
 
-        resetHoldTimer = setTimeout(function() {
-            if (isResetting) {
-                // Perform reset
-                isRunning = false;
-                clearInterval(stopwatchInterval);
-                stopwatchTime = 0;
-                updateStopwatchDisplay();
+    function hideResetConfirmation() {
+        isConfirming = false;
+        resetBtn.classList.remove('confirming');
+        const confirmDiv = resetBtn.querySelector('.reset-confirm');
+        if (confirmDiv) {
+            confirmDiv.classList.add('hidden');
+        }
+    }
 
-                playPauseBtn.classList.remove('paused');
-                playIcon.classList.remove('hidden');
-                pauseIcon.classList.add('hidden');
-                btnText.textContent = 'Start';
+    function performReset() {
+        // Perform reset
+        isRunning = false;
+        clearInterval(stopwatchInterval);
+        stopwatchTime = 0;
+        updateStopwatchDisplay();
 
-                // Reset elapsed time fields
-                document.getElementById('elapsed-time-min').value = 0;
-                document.getElementById('elapsed-time-sec').value = 0;
+        playPauseBtn.classList.remove('paused');
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+        btnText.textContent = 'Start';
 
-                resetBtn.textContent = 'Reset';
-                showToast('Stopwatch reset', 'success');
+        // Reset elapsed time fields
+        document.getElementById('elapsed-time-min').value = 0;
+        document.getElementById('elapsed-time-sec').value = 0;
+
+        hideResetConfirmation();
+        showToast('Stopwatch reset', 'success');
+    }
+
+    // Handle reset button clicks
+    resetBtn.addEventListener('click', function(e) {
+        const confirmBtn = e.target.closest('.reset-confirm-btn');
+
+        if (confirmBtn) {
+            // User clicked on confirm or cancel button
+            e.stopPropagation();
+            const action = confirmBtn.dataset.action;
+
+            if (action === 'confirm') {
+                performReset();
+            } else if (action === 'cancel') {
+                hideResetConfirmation();
             }
-        }, 800); // Hold for 800ms
+        } else if (!isConfirming) {
+            // User clicked on reset button itself (not confirming yet)
+            showResetConfirmation();
+        }
     });
 
-    resetBtn.addEventListener('mouseup', function() {
-        isResetting = false;
-        clearTimeout(resetHoldTimer);
-        resetBtn.textContent = 'Reset';
-    });
-
-    resetBtn.addEventListener('mouseleave', function() {
-        isResetting = false;
-        clearTimeout(resetHoldTimer);
-        resetBtn.textContent = 'Reset';
-    });
-
-    // Touch events for mobile
-    resetBtn.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        isResetting = true;
-        resetBtn.textContent = 'Hold...';
-
-        resetHoldTimer = setTimeout(function() {
-            if (isResetting) {
-                // Perform reset
-                isRunning = false;
-                clearInterval(stopwatchInterval);
-                stopwatchTime = 0;
-                updateStopwatchDisplay();
-
-                playPauseBtn.classList.remove('paused');
-                playIcon.classList.remove('hidden');
-                pauseIcon.classList.add('hidden');
-                btnText.textContent = 'Start';
-
-                // Reset elapsed time fields
-                document.getElementById('elapsed-time-min').value = 0;
-                document.getElementById('elapsed-time-sec').value = 0;
-
-                resetBtn.textContent = 'Reset';
-                showToast('Stopwatch reset', 'success');
-            }
-        }, 800);
-    });
-
-    resetBtn.addEventListener('touchend', function(e) {
-        e.preventDefault();
-        isResetting = false;
-        clearTimeout(resetHoldTimer);
-        resetBtn.textContent = 'Reset';
-    });
-
-    resetBtn.addEventListener('touchcancel', function(e) {
-        e.preventDefault();
-        isResetting = false;
-        clearTimeout(resetHoldTimer);
-        resetBtn.textContent = 'Reset';
+    // Click anywhere else to cancel
+    document.addEventListener('click', function(e) {
+        if (isConfirming && !resetBtn.contains(e.target)) {
+            hideResetConfirmation();
+        }
     });
 
     // ===== TIME PRESET BUTTONS =====
