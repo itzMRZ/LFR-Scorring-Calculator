@@ -418,7 +418,7 @@ h1 {
     margin-bottom: 20px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     .settings-grid {
         grid-template-columns: 1fr;
     }
@@ -600,15 +600,16 @@ h1 {
 }
 
 .toast {
-    background: rgba(26, 31, 46, 0.98);
-    border: 1px solid rgba(88, 166, 255, 0.3);
+    background: #ffffff;
+    border: 1px solid #d0d7de;
     border-radius: 8px;
     padding: 14px 18px;
     min-width: 280px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    max-width: 400px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
     opacity: 0;
     transform: translateX(400px);
-    transition: all 0.3s ease-out;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toast.show {
@@ -623,26 +624,46 @@ h1 {
 }
 
 .toast-icon {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.toast-icon svg {
+    width: 12px;
+    height: 12px;
+}
+
+.toast.success {
+    border-color: #10b981;
+    background: #f0fdf4;
 }
 
 .toast.success .toast-icon {
-    background: rgba(16, 185, 129, 0.2);
-    color: #3fb950;
-    border: 2px solid #3fb950;
+    background: #10b981;
+}
+
+.toast.success .toast-icon svg {
+    stroke: #ffffff;
+    stroke-width: 3;
+}
+
+.toast.error {
+    border-color: #cf222e;
+    background: #fff1f0;
 }
 
 .toast.error .toast-icon {
-    background: rgba(239, 68, 68, 0.2);
-    color: #f85149;
-    border: 2px solid #f85149;
+    background: #cf222e;
+}
+
+.toast.error .toast-icon svg {
+    stroke: #ffffff;
+    stroke-width: 3;
 }
 
 .toast-message {
@@ -651,6 +672,27 @@ h1 {
     color: #24292f;
     font-weight: 500;
     line-height: 1.4;
+}
+
+/* Dark Mode Toast Styles */
+body.dark-mode .toast {
+    background: #161b22;
+    border-color: #30363d;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .toast.success {
+    background: #0d1a14;
+    border-color: #10b981;
+}
+
+body.dark-mode .toast.error {
+    background: #1a1212;
+    border-color: #f85149;
+}
+
+body.dark-mode .toast-message {
+    color: #e6edf3;
 }
 
 /* Main Calculator Styles */
@@ -1015,16 +1057,6 @@ button#calculate-btn:active {
         margin-bottom: 16px;
     }
 
-    .preset-section {
-        padding: 14px;
-        margin-bottom: 16px;
-    }
-
-    .import-export-section {
-        padding: 14px;
-        margin-bottom: 16px;
-    }
-
     .checkbox-group {
         padding: 12px;
         margin-bottom: 12px;
@@ -1058,16 +1090,28 @@ button#calculate-btn:active {
     }
 
     .modal-content {
-        padding: 16px;
+        padding: 20px;
         border-radius: 0;
         max-height: 100vh;
+        height: 100vh;
         width: 100%;
+        max-width: 100%;
         margin: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .modal-header {
         margin-bottom: 16px;
         padding-bottom: 12px;
+        position: sticky;
+        top: 0;
+        background: #ffffff;
+        z-index: 10;
+    }
+
+    body.dark-mode .modal-header {
+        background: #161b22;
     }
 
     .modal-header h2 {
@@ -1081,74 +1125,101 @@ button#calculate-btn:active {
     }
 
     .settings-group {
-        margin-bottom: 14px;
+        margin-bottom: 16px;
     }
 
     .settings-group label {
-        font-size: 12px;
-        margin-bottom: 6px;
+        font-size: 13px;
+        margin-bottom: 8px;
     }
 
     .settings-group input[type="number"] {
-        padding: 10px 12px;
-        font-size: 14px;
+        padding: 12px;
+        font-size: 15px;
     }
 
     .settings-description {
-        font-size: 11px;
-        margin-top: 4px;
+        font-size: 12px;
+        margin-top: 6px;
     }
 
     .settings-grid {
-        gap: 14px;
-        margin-bottom: 20px;
+        gap: 16px;
+        margin-bottom: 16px;
+        grid-template-columns: 1fr;
     }
 
-    .preset-section h3,
+    .preset-section {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .preset-section h3 {
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+
+    .import-export-section {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
     .import-export-section h4 {
-        font-size: 12px;
-        margin-bottom: 10px;
+        font-size: 13px;
+        margin-bottom: 12px;
     }
 
     .preset-controls {
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
     }
 
     .preset-select {
         width: 100%;
-        padding: 10px;
-        font-size: 13px;
+        padding: 12px;
+        font-size: 14px;
     }
 
     .preset-btn {
         width: 100%;
-        padding: 10px;
-        font-size: 12px;
+        padding: 12px;
+        font-size: 13px;
     }
 
     .import-export-controls {
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
     }
 
     .import-export-controls button {
         width: 100%;
         min-width: auto;
-        padding: 10px;
-        font-size: 12px;
+        padding: 12px;
+        font-size: 13px;
     }
 
     .modal-actions {
         padding-top: 16px;
-        gap: 8px;
+        gap: 10px;
         flex-direction: column-reverse;
+        position: sticky;
+        bottom: 0;
+        background: #ffffff;
+        margin: 0 -20px -20px -20px;
+        padding: 16px 20px 20px 20px;
+        border-top: 2px solid #d0d7de;
+    }
+
+    body.dark-mode .modal-actions {
+        background: #161b22;
+        border-top-color: #21262d;
     }
 
     .modal-btn {
         width: 100%;
-        padding: 12px;
-        font-size: 14px;
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 600;
     }
 
     .save-preset-modal .modal-content {
@@ -1323,15 +1394,24 @@ body.dark-mode .modal-actions {
     border-top-color: #21262d;
 }
 
+body.dark-mode .modal-btn.primary {
+    background: #58a6ff;
+    color: #0d1117;
+}
+
+body.dark-mode .modal-btn.primary:hover {
+    background: #79c0ff;
+}
+
 body.dark-mode .modal-btn.secondary {
     background: #21262d;
     border-color: #30363d;
-    color: #8b949e;
+    color: #e6edf3;
 }
 
 body.dark-mode .modal-btn.secondary:hover {
     background: #30363d;
-    color: #e6edf3;
+    border-color: #484f58;
 }
 
 body.dark-mode .import-export-section {
@@ -1339,8 +1419,56 @@ body.dark-mode .import-export-section {
     border-color: #30363d;
 }
 
+body.dark-mode .import-export-section h4 {
+    color: #e6edf3;
+}
+
+body.dark-mode .preset-section {
+    background: #0d1117;
+    border-color: #30363d;
+}
+
+body.dark-mode .preset-section h3 {
+    color: #e6edf3;
+}
+
+body.dark-mode .preset-select {
+    background: #0d1117;
+    border-color: #30363d;
+    color: #e6edf3;
+}
+
+body.dark-mode .preset-select:focus {
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+}
+
+body.dark-mode .preset-btn {
+    background: #21262d;
+    border-color: #30363d;
+    color: #e6edf3;
+}
+
+body.dark-mode .preset-btn:hover {
+    background: #58a6ff;
+    border-color: #58a6ff;
+    color: #0d1117;
+}
+
+body.dark-mode .preset-btn.danger {
+    background: #1a1212;
+    color: #f85149;
+    border-color: #da3633;
+}
+
+body.dark-mode .preset-btn.danger:hover {
+    background: #da3633;
+    color: #ffffff;
+    border-color: #da3633;
+}
+
 body.dark-mode .settings-group label {
-    color: #8b949e;
+    color: #e6edf3;
 }
 
 body.dark-mode .settings-group input[type="number"] {
@@ -1350,7 +1478,17 @@ body.dark-mode .settings-group input[type="number"] {
 }
 
 body.dark-mode .settings-group input[type="number"]:focus {
-    border-color: #3b82f6;
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+}
+
+body.dark-mode .settings-group input.error {
+    border-color: #f85149;
+    background: rgba(248, 81, 73, 0.1);
+}
+
+body.dark-mode .validation-error {
+    color: #f85149;
 }
 
 body.dark-mode .preset-item {
