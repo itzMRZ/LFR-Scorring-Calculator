@@ -1163,7 +1163,7 @@ button#calculate-btn:active {
     }
 
     .modal-content {
-        padding: 16px;
+        padding: 12px;
         border-radius: 0;
         max-height: none;
         height: auto;
@@ -1177,101 +1177,122 @@ button#calculate-btn:active {
     }
 
     .modal-header {
-        margin-bottom: 12px;
-        padding-bottom: 10px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
         flex-shrink: 0;
     }
 
     .modal-header h2 {
-        font-size: 17px;
+        font-size: 16px;
     }
 
     .close-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 22px;
+        width: 30px;
+        height: 30px;
+        font-size: 20px;
     }
 
     .settings-group {
-        margin-bottom: 12px;
+        margin-bottom: 0;
     }
 
     .settings-group label {
         font-size: 12px;
-        margin-bottom: 5px;
+        margin-bottom: 4px;
     }
 
     .settings-group input[type="number"] {
-        padding: 10px;
-        font-size: 15px;
+        padding: 8px 10px;
+        font-size: 14px;
     }
 
     .settings-description {
         font-size: 10px;
-        margin-top: 3px;
+        margin-top: 2px;
         line-height: 1.2;
     }
 
     .settings-grid {
-        gap: 12px;
-        margin-bottom: 12px;
-        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Full width for Total Time field */
+    .settings-grid .settings-group:last-child {
+        grid-column: 1 / -1;
     }
 
     .preset-section {
-        padding: 12px;
-        margin-bottom: 12px;
+        padding: 10px;
+        margin-bottom: 10px;
     }
 
     .preset-section h3 {
         font-size: 12px;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
+    }
+
+    .preset-controls {
+        gap: 6px;
+        flex-direction: row;
+    }
+
+    .preset-select {
+        flex: 1;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .preset-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .time-preset-buttons {
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .time-preset-btn {
+        padding: 8px 10px;
+        font-size: 11px;
     }
 
     .import-export-section {
-        padding: 12px;
-        margin-bottom: 12px;
+        padding: 10px;
+        margin-bottom: 10px;
     }
 
     .import-export-section h4 {
         font-size: 12px;
-        margin-bottom: 8px;
-    }
-
-    .preset-controls {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .preset-select {
-        width: 100%;
-        padding: 10px;
-        font-size: 14px;
-    }
-
-    .preset-btn {
-        width: 100%;
-        padding: 10px;
-        font-size: 13px;
+        margin-bottom: 6px;
     }
 
     .import-export-controls {
-        flex-direction: column;
-        gap: 8px;
+        gap: 6px;
     }
 
     .import-export-controls button {
-        width: 100%;
-        min-width: auto;
-        padding: 10px;
-        font-size: 13px;
+        flex: 1;
+        min-width: 90px;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .import-export-controls button .btn-text {
+        display: none;
+    }
+
+    .validation-error {
+        font-size: 10px;
+        margin-top: 2px;
     }
 
     .modal-actions {
-        padding-top: 12px;
-        margin-top: 8px;
+        padding-top: 10px;
+        margin-top: 6px;
         gap: 8px;
-        flex-direction: column-reverse;
         flex-shrink: 0;
     }
 
