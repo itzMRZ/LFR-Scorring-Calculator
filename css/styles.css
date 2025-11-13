@@ -1167,7 +1167,7 @@ button#calculate-btn:active {
         border-radius: 0;
         max-height: none;
         height: auto;
-        min-height: 100vh;
+        min-height: 0;
         width: 100%;
         max-width: 100%;
         margin: 0;
