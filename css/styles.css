@@ -1072,6 +1072,7 @@ button#calculate-btn:active {
 @media (max-width: 600px) {
     body {
         padding: 12px;
+        align-items: flex-start;
     }
 
     .calculator-container {
